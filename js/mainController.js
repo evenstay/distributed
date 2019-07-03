@@ -4,9 +4,27 @@
 angular
   .module('fireideaz')
 
-  .controller('MainCtrl', ['$scope', '$filter', '$window', 'Utils', 'Auth',
-  '$rootScope', 'FirebaseService', 'ModalService',
-    function ($scope, $filter, $window, utils, auth, $rootScope, firebaseService, modalService) {
+  .controller('MainCtrl', [
+    '$scope',
+    '$filter',
+    '$window',
+    'Utils',
+    'Auth',
+    '$rootScope',
+    'FirebaseService',
+    'ModalService',
+    'FEATURES',
+    function(
+      $scope,
+      $filter,
+      $window,
+      utils,
+      auth,
+      $rootScope,
+      firebaseService,
+      modalService,
+      FEATURES
+    ) {
       $scope.loading = true;
       $scope.messageTypes = utils.messageTypes;
       $scope.utils = utils;
@@ -14,23 +32,30 @@ angular
         name: '',
         text_editing_is_private: true
       };
+      $scope.features = FEATURES;
       $scope.userId = $window.location.hash.substring(1) || '';
       $scope.searchParams = {};
-      $window.location.search.substr(1).split('&').forEach(function(pair){
-        var keyValue = pair.split('=');
-        $scope.searchParams[keyValue[0]] = keyValue[1];
-      });
+      $window.location.search
+        .substr(1)
+        .split('&')
+        .forEach(function(pair) {
+          var keyValue = pair.split('=');
+          $scope.searchParams[keyValue[0]] = keyValue[1];
+        });
       $scope.sortField = $scope.searchParams.sort || 'date_created';
       $scope.selectedType = 1;
       $scope.import = {
-        data : [],
-        mapping : []
+        data: [],
+        mapping: []
       };
 
       $scope.droppedEvent = function(dragEl, dropEl) {
         var drag = $('#' + dragEl);
         var drop = $('#' + dropEl);
-        var dragMessageRef = firebaseService.getMessageRef($scope.userId, drag.attr('messageId'));
+        var dragMessageRef = firebaseService.getMessageRef(
+          $scope.userId,
+          drag.attr('messageId')
+        );
 
         dragMessageRef.once('value', function() {
           dragMessageRef.update({
@@ -61,7 +86,9 @@ angular
           $scope.boardContext = $rootScope.boardContext = board.val().boardContext;
           $scope.loading = false;
           $scope.hideVote = board.val().hide_vote;
-          setTimeout(function() {new EmojiPicker();}, 100);
+          setTimeout(function() {
+            new EmojiPicker();
+          }, 100);
         });
 
         $scope.boardRef = board;
@@ -96,7 +123,9 @@ angular
       };
 
       $scope.getSortFields = function() {
-        return $scope.sortField === 'votes' ? ['-votes', 'date_created'] : 'date_created';
+        return $scope.sortField === 'votes'
+          ? ['-votes', 'date_created']
+          : 'date_created';
       };
 
       $scope.saveMessage = function(message) {
@@ -105,8 +134,11 @@ angular
       };
 
       function redirectToBoard() {
-        window.location.href = window.location.origin +
-          window.location.pathname + '#' + $scope.userId;
+        window.location.href =
+          window.location.origin +
+          window.location.pathname +
+          '#' +
+          $scope.userId;
       }
 
       $scope.isBoardNameInvalid = function() {
@@ -124,20 +156,23 @@ angular
 
         var callback = function(userData) {
           var board = firebaseService.getBoardRef($scope.userId);
-          board.set({
-            boardId: $scope.newBoard.name,
-            date_created: new Date().toString(),
-            columns: $scope.messageTypes,
-            user_id: userData.uid,
-            max_votes: $scope.newBoard.max_votes || 6,
-            text_editing_is_private : $scope.newBoard.text_editing_is_private
-          }, function(error) {
-             if (error) {
+          board.set(
+            {
+              boardId: $scope.newBoard.name,
+              date_created: new Date().toString(),
+              columns: $scope.messageTypes,
+              user_id: userData.uid,
+              max_votes: $scope.newBoard.max_votes || 6,
+              text_editing_is_private: $scope.newBoard.text_editing_is_private
+            },
+            function(error) {
+              if (error) {
                 $scope.loading = false;
-             } else {
+              } else {
                 redirectToBoard();
-             }
-          });
+              }
+            }
+          );
 
           $scope.newBoard.name = '';
         };
@@ -160,12 +195,17 @@ angular
       };
 
       $scope.updateSortOrder = function() {
-        var updatedFilter = $window.location.origin + $window.location.pathname + '?sort=' + $scope.sortField + $window.location.hash;
+        var updatedFilter =
+          $window.location.origin +
+          $window.location.pathname +
+          '?sort=' +
+          $scope.sortField +
+          $window.location.hash;
         $window.history.pushState({ path: updatedFilter }, '', updatedFilter);
       };
 
       $scope.addNewColumn = function(name) {
-        if(typeof name === 'undefined' || name === '') {
+        if (typeof name === 'undefined' || name === '') {
           return;
         }
 
@@ -181,7 +221,7 @@ angular
       };
 
       $scope.changeColumnName = function(id, newName) {
-        if(typeof newName === 'undefined' || newName === '') {
+        if (typeof newName === 'undefined' || newName === '') {
           return;
         }
 
@@ -199,7 +239,7 @@ angular
 
       $scope.deleteColumn = function(column) {
         $scope.board.columns = $scope.board.columns.filter(function(_column) {
-            return _column.id !== column.id;
+          return _column.id !== column.id;
         });
 
         var boardColumns = firebaseService.getBoardColumns($scope.userId);
@@ -217,21 +257,25 @@ angular
         var id = message.key;
         angular.element($('#' + id)).scope().isEditing = true;
         new EmojiPicker();
-        $('#' + id).find('textarea').focus();
+        $('#' + id)
+          .find('textarea')
+          .focus();
       }
 
       $scope.addNewMessage = function(type) {
-        $scope.messages.$add({
-          text: '',
-          creating: true,
-          user_id: $scope.userUid,
-          type: {
-            id: type.id
-          },
-          date: firebaseService.getServerTimestamp(),
-          date_created: firebaseService.getServerTimestamp(),
-          votes: 0
-        }).then(addMessageCallback);
+        $scope.messages
+          .$add({
+            text: '',
+            creating: true,
+            user_id: $scope.userUid,
+            type: {
+              id: type.id
+            },
+            date: firebaseService.getServerTimestamp(),
+            date_created: firebaseService.getServerTimestamp(),
+            votes: 0
+          })
+          .then(addMessageCallback);
       };
 
       $scope.deleteCards = function() {
@@ -271,7 +315,7 @@ angular
         }
       };
 
-      $scope.cleanImportData = function () {
+      $scope.cleanImportData = function() {
         $scope.import.data = [];
         $scope.import.mapping = [];
         $scope.import.error = '';
